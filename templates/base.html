@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>{% block title %}Confidence Builder AI{% endblock %}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  {% block head %}{% endblock %}
+</head>
+<body>
+
+<nav class="navbar">
+  <a href="{{ url_for('home') }}" class="nav-brand">
+    <span class="brand-icon">⚡</span>
+    <span class="brand-text">Confidence<span class="accent">AI</span></span>
+  </a>
+  <div class="nav-links">
+    {% if logged_in is defined and logged_in or session.user_id %}
+      <a href="{{ url_for('dashboard') }}" class="nav-link {% if request.endpoint == 'dashboard' %}active{% endif %}">Dashboard</a>
+      <a href="{{ url_for('challenges') }}" class="nav-link {% if request.endpoint == 'challenges' %}active{% endif %}">Challenges</a>
+      <a href="{{ url_for('ai_chat') }}" class="nav-link {% if request.endpoint == 'ai_chat' %}active{% endif %}">AI Chat</a>
+      <a href="{{ url_for('progress') }}" class="nav-link {% if request.endpoint == 'progress' %}active{% endif %}">Progress</a>
+      <a href="{{ url_for('logout') }}" class="nav-link logout-btn">Logout</a>
+    {% else %}
+      <a href="{{ url_for('login') }}" class="nav-link">Login</a>
+      <a href="{{ url_for('signup') }}" class="btn-primary nav-cta">Get Started</a>
+    {% endif %}
+  </div>
+  <button class="hamburger" onclick="toggleMenu()">☰</button>
+</nav>
+
+<div class="mobile-menu" id="mobileMenu">
+  {% if session.user_id %}
+    <a href="{{ url_for('dashboard') }}">Dashboard</a>
+    <a href="{{ url_for('challenges') }}">Challenges</a>
+    <a href="{{ url_for('ai_chat') }}">AI Chat</a>
+    <a href="{{ url_for('progress') }}">Progress</a>
+    <a href="{{ url_for('logout') }}">Logout</a>
+  {% else %}
+    <a href="{{ url_for('login') }}">Login</a>
+    <a href="{{ url_for('signup') }}">Sign Up</a>
+  {% endif %}
+</div>
+
+<main>
+  {% block content %}{% endblock %}
+</main>
+
+<script src="{{ url_for('static', filename='js/main.js') }}"></script>
+{% block scripts %}{% endblock %}
+</body>
+</html>

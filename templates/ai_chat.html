@@ -1,0 +1,151 @@
+{% extends "base.html" %}
+{% block title %}AI Mentor Chat — Confidence Builder AI{% endblock %}
+{% block content %}
+<div class="chat-page">
+  <div class="chat-sidebar">
+    <div class="chat-sidebar-header">
+      <div class="ai-avatar">🧠</div>
+      <div>
+        <div class="ai-name">ConfidenceAI Mentor</div>
+        <div class="ai-status"><span class="status-dot"></span> Online</div>
+      </div>
+    </div>
+    <div class="chat-tips">
+      <p class="tips-title">Ask me about:</p>
+      <div class="tip-chip" onclick="sendQuick('Explain recursion with a simple example')">Recursion basics</div>
+      <div class="tip-chip" onclick="sendQuick('Give me a study plan for DSA in 3 months')">DSA study plan</div>
+      <div class="tip-chip" onclick="sendQuick('How do I get an internship at a top tech company?')">Internship advice</div>
+      <div class="tip-chip" onclick="sendQuick('Explain the difference between ArrayList and LinkedList in Java')">ArrayList vs LinkedList</div>
+      <div class="tip-chip" onclick="sendQuick('Motivate me, I feel like giving up')">Motivation boost</div>
+      <div class="tip-chip" onclick="sendQuick('What should I learn after Python basics?')">What to learn next</div>
+    </div>
+    <button class="btn-outline btn-sm clear-btn" onclick="clearChat()">🗑️ Clear Chat</button>
+  </div>
+
+  <div class="chat-main">
+    <div class="chat-messages" id="chatMessages">
+      <!-- System welcome -->
+      <div class="msg msg-ai">
+        <div class="msg-avatar">🧠</div>
+        <div class="msg-bubble">
+          <p>Hey {{ session.username }} 👋 I'm your AI mentor — here to help you crack DSA, build projects, and get that dream job at Microsoft.</p>
+          <p>Ask me anything — doubts, motivation, study plans, or just "what should I do today?" 🚀</p>
+        </div>
+      </div>
+
+      {% for msg in history %}
+        {% if msg.role == 'user' %}
+          <div class="msg msg-user">
+            <div class="msg-bubble msg-bubble-user">{{ msg.content }}</div>
+            <div class="msg-avatar user-av">{{ session.username[0].upper() }}</div>
+          </div>
+        {% else %}
+          <div class="msg msg-ai">
+            <div class="msg-avatar">🧠</div>
+            <div class="msg-bubble">{{ msg.content | replace('\n', '<br>') | safe }}</div>
+          </div>
+        {% endif %}
+      {% endfor %}
+
+      <div id="typingIndicator" class="msg msg-ai" style="display:none">
+        <div class="msg-avatar">🧠</div>
+        <div class="msg-bubble typing">
+          <span></span><span></span><span></span>
+        </div>
+      </div>
+    </div>
+
+    <div class="chat-input-area">
+      <div class="chat-input-wrap">
+        <textarea id="chatInput" placeholder="Ask your mentor anything... (Shift+Enter for new line)"
+          rows="1" onkeydown="handleKey(event)" oninput="autoResize(this)"></textarea>
+        <button class="send-btn" onclick="sendMessage()">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+            <path d="M22 2L11 13" stroke="white" stroke-width="2" stroke-linecap="round"/>
+            <path d="M22 2L15 22L11 13L2 9L22 2Z" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </button>
+      </div>
+      <p class="chat-disclaimer">Powered by Claude AI · Your personal study mentor</p>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+const messagesContainer = document.getElementById('chatMessages');
+const input = document.getElementById('chatInput');
+const typing = document.getElementById('typingIndicator');
+
+function scrollBottom() {
+  messagesContainer.scrollTop = messagesContainer.scrollHeight;
+}
+scrollBottom();
+
+function handleKey(e) {
+  if (e.key === 'Enter' && !e.shiftKey) {
+    e.preventDefault();
+    sendMessage();
+  }
+}
+
+function autoResize(el) {
+  el.style.height = 'auto';
+  el.style.height = Math.min(el.scrollHeight, 120) + 'px';
+}
+
+function addMessage(role, content) {
+  const div = document.createElement('div');
+  div.className = `msg msg-${role}`;
+  if (role === 'user') {
+    div.innerHTML = `<div class="msg-bubble msg-bubble-user">${escHtml(content)}</div>
+      <div class="msg-avatar user-av">{{ session.username[0].upper() }}</div>`;
+  } else {
+    div.innerHTML = `<div class="msg-avatar">🧠</div>
+      <div class="msg-bubble">${content.replace(/\n/g, '<br>')}</div>`;
+  }
+  messagesContainer.insertBefore(div, typing);
+  scrollBottom();
+}
+
+function escHtml(t) {
+  return t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+async function sendMessage() {
+  const msg = input.value.trim();
+  if (!msg) return;
+  input.value = '';
+  input.style.height = 'auto';
+  addMessage('user', msg);
+  typing.style.display = 'flex';
+  scrollBottom();
+
+  try {
+    const res = await fetch('/api/chat', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({message: msg})
+    });
+    const data = await res.json();
+    typing.style.display = 'none';
+    addMessage('ai', data.reply || data.error || 'Something went wrong.');
+  } catch(e) {
+    typing.style.display = 'none';
+    addMessage('ai', '⚠️ Network error. Check your connection.');
+  }
+}
+
+function sendQuick(msg) {
+  input.value = msg;
+  sendMessage();
+}
+
+async function clearChat() {
+  if (!confirm('Clear all chat history?')) return;
+  await fetch('/api/clear-chat', {method: 'POST'});
+  location.reload();
+}
+</script>
+{% endblock %}

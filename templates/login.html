@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block title %}Login — Confidence Builder AI{% endblock %}
+{% block content %}
+<div class="auth-page">
+  <div class="auth-left">
+    <div class="auth-brand">⚡ ConfidenceAI</div>
+    <h2>Welcome back, builder.</h2>
+    <p>Your streak is waiting. Don't break the chain.</p>
+    <div class="auth-features">
+      <div class="af">✅ Track your daily progress</div>
+      <div class="af">🧠 Chat with AI mentor</div>
+      <div class="af">🏆 Earn badges & level up</div>
+    </div>
+  </div>
+  <div class="auth-right">
+    <div class="auth-card">
+      <h2 class="auth-title">Login</h2>
+      {% if error %}
+        <div class="alert-error">⚠️ {{ error }}</div>
+      {% endif %}
+      <form method="POST">
+        <div class="form-group">
+          <label>Email</label>
+          <input type="email" name="email" placeholder="you@example.com" required>
+        </div>
+        <div class="form-group">
+          <label>Password</label>
+          <input type="password" name="password" placeholder="••••••••" required>
+        </div>
+        <button type="submit" class="btn-primary btn-full">Login →</button>
+      </form>
+      <p class="auth-switch">Don't have an account? <a href="{{ url_for('signup') }}">Sign up free</a></p>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% block title %}Sign Up — Confidence Builder AI{% endblock %}
+{% block content %}
+<div class="auth-page">
+  <div class="auth-left">
+    <div class="auth-brand">⚡ ConfidenceAI</div>
+    <h2>Your journey to top-tier starts here.</h2>
+    <p>Build skills, earn points, unlock your potential.</p>
+    <div class="auth-features">
+      <div class="af">🚀 Free forever — no credit card needed</div>
+      <div class="af">🎯 16+ real-world challenges</div>
+      <div class="af">💎 Unique confidence scoring system</div>
+    </div>
+  </div>
+  <div class="auth-right">
+    <div class="auth-card">
+      <h2 class="auth-title">Create Account</h2>
+      {% if error %}
+        <div class="alert-error">⚠️ {{ error }}</div>
+      {% endif %}
+      <form method="POST">
+        <div class="form-group">
+          <label>Username</label>
+          <input type="text" name="username" placeholder="cooldevarbaz" required>
+        </div>
+        <div class="form-group">
+          <label>Email</label>
+          <input type="email" name="email" placeholder="you@example.com" required>
+        </div>
+        <div class="form-group">
+          <label>Password</label>
+          <input type="password" name="password" placeholder="Min 6 characters" required>
+        </div>
+        <button type="submit" class="btn-primary btn-full">Create Account →</button>
+      </form>
+      <p class="auth-switch">Already have an account? <a href="{{ url_for('login') }}">Login</a></p>
+    </div>
+  </div>
+</div>
+{% endblock %}

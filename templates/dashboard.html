@@ -1,0 +1,156 @@
+{% extends "base.html" %}
+{% block title %}Dashboard — Confidence Builder AI{% endblock %}
+{% block content %}
+<div class="page-wrapper">
+
+  <!-- TOP GREETING -->
+  <div class="dash-header">
+    <div>
+      <h1>Hey, <span class="gradient-text">{{ user.username }}</span> 👋</h1>
+      <p class="dash-sub">Level {{ level }} Builder • {{ user.streak }} day streak 🔥</p>
+    </div>
+    <a href="{{ url_for('challenges') }}" class="btn-primary">Today's Challenges →</a>
+  </div>
+
+  <!-- STAT CARDS -->
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-icon">⚡</div>
+      <div class="stat-val">{{ user.points }}</div>
+      <div class="stat-label">Total Points</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon">💎</div>
+      <div class="stat-val">{{ confidence }}%</div>
+      <div class="stat-label">Confidence Score</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon">✅</div>
+      <div class="stat-val">{{ completed_count }}</div>
+      <div class="stat-label">Tasks Completed</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon">🔥</div>
+      <div class="stat-val">{{ user.streak }}</div>
+      <div class="stat-label">Day Streak</div>
+    </div>
+  </div>
+
+  <!-- LEVEL + CONFIDENCE -->
+  <div class="mid-grid">
+
+    <!-- LEVEL PROGRESS -->
+    <div class="card">
+      <div class="card-header">
+        <h3>Level Progress</h3>
+        <span class="badge-pill">Lvl {{ level }}</span>
+      </div>
+      <div class="level-display">
+        <div class="level-icon">{{ level }}</div>
+        <div class="level-info">
+          <div class="level-name">{{ ["","Rookie","Learner","Coder","Builder","Hacker","Engineer","Expert","Master","Legend","GOAT"][level] }}</div>
+          <div class="progress-bar-wrap">
+            <div class="progress-bar" style="width: {{ progress_pct }}%"></div>
+          </div>
+          <div class="level-pts">{{ user.points }} / {{ pts_for_next }} pts to next level</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CONFIDENCE METER -->
+    <div class="card">
+      <div class="card-header">
+        <h3>Confidence Score</h3>
+        <span class="badge-pill">{{ confidence }}%</span>
+      </div>
+      <div class="confidence-ring-wrap">
+        <svg class="conf-ring" viewBox="0 0 120 120">
+          <circle cx="60" cy="60" r="50" fill="none" stroke="#1a1a2e" stroke-width="12"/>
+          <circle cx="60" cy="60" r="50" fill="none"
+            stroke="url(#grad)" stroke-width="12"
+            stroke-dasharray="{{ (confidence / 100 * 314) | round }} 314"
+            stroke-dashoffset="78.5"
+            stroke-linecap="round"/>
+          <defs>
+            <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="0%">
+              <stop offset="0%" style="stop-color:#6c63ff"/>
+              <stop offset="100%" style="stop-color:#00d4ff"/>
+            </linearGradient>
+          </defs>
+          <text x="60" y="65" text-anchor="middle" font-size="18" fill="white" font-weight="700">{{ confidence }}%</text>
+        </svg>
+        <div class="conf-breakdown">
+          <div class="cb-item"><span>Tasks Done</span><span>{{ completed_count }} ✅</span></div>
+          <div class="cb-item"><span>Streak</span><span>{{ user.streak }}🔥</span></div>
+          <div class="cb-item"><span>Level</span><span>{{ level }} 💎</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- BADGES + RECENT -->
+  <div class="bot-grid">
+
+    <!-- BADGES -->
+    <div class="card">
+      <div class="card-header"><h3>🏆 Badges Earned</h3></div>
+      {% if badges %}
+        <div class="badges-grid">
+          {% for icon, name, desc in badges %}
+            <div class="badge-item" title="{{ desc }}">
+              <div class="badge-ico">{{ icon }}</div>
+              <div class="badge-name">{{ name }}</div>
+            </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <div class="empty-state">
+          <p>Complete tasks to earn your first badge! 🎖️</p>
+          <a href="{{ url_for('challenges') }}" class="btn-outline btn-sm">Start Now</a>
+        </div>
+      {% endif %}
+    </div>
+
+    <!-- RECENT ACTIVITY -->
+    <div class="card">
+      <div class="card-header"><h3>📋 Recent Activity</h3></div>
+      {% if recent %}
+        <div class="activity-list">
+          {% for item in recent %}
+            <div class="activity-item">
+              <div class="act-dot cat-{{ item.category | lower | replace(' ', '-') }}"></div>
+              <div class="act-info">
+                <div class="act-title">{{ item.title }}</div>
+                <div class="act-meta">{{ item.category }} • +{{ item.points }} pts</div>
+              </div>
+              <div class="act-time">{{ item.completed_at[:10] }}</div>
+            </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <div class="empty-state">
+          <p>No activity yet. Complete your first challenge!</p>
+          <a href="{{ url_for('challenges') }}" class="btn-outline btn-sm">Go to Challenges</a>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- QUICK ACTIONS -->
+  <div class="quick-actions">
+    <a href="{{ url_for('challenges') }}" class="qa-card">
+      <span class="qa-icon">🎯</span>
+      <span>Daily Challenges</span>
+    </a>
+    <a href="{{ url_for('ai_chat') }}" class="qa-card">
+      <span class="qa-icon">🧠</span>
+      <span>Ask AI Mentor</span>
+    </a>
+    <a href="{{ url_for('progress') }}" class="qa-card">
+      <span class="qa-icon">📈</span>
+      <span>View Progress</span>
+    </a>
+  </div>
+
+</div>
+{% endblock %}

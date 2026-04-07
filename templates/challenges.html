@@ -1,0 +1,106 @@
+{% extends "base.html" %}
+{% block title %}Daily Challenges — Confidence Builder AI{% endblock %}
+{% block content %}
+<div class="page-wrapper">
+  <div class="page-header">
+    <h1>Daily <span class="gradient-text">Challenges</span></h1>
+    <p>Complete tasks to earn points, build skills, and boost your confidence score.</p>
+  </div>
+
+  <div class="cat-tabs">
+    <button class="cat-tab active" onclick="filterCat('all')">All</button>
+    <button class="cat-tab" onclick="filterCat('coding')">💻 Coding</button>
+    <button class="cat-tab" onclick="filterCat('communication')">🎤 Communication</button>
+    <button class="cat-tab" onclick="filterCat('problem-solving')">🧩 Problem Solving</button>
+  </div>
+
+  {% for category, tasks in categories.items() %}
+  <div class="challenge-section cat-section-{{ category | lower | replace(' ', '-') }}">
+    <div class="cat-header">
+      <span class="cat-badge">
+        {% if category == "Coding" %}💻{% elif category == "Communication" %}🎤{% else %}🧩{% endif %}
+        {{ category }}
+      </span>
+    </div>
+    <div class="tasks-grid">
+      {% for task in tasks %}
+      <div class="task-card {% if task.id in completed_ids %}task-done{% endif %}"
+           id="task-{{ task.id }}"
+           data-cat="{{ task.category | lower | replace(' ', '-') }}">
+        <div class="task-top">
+          <span class="diff-badge diff-{{ task.difficulty | lower }}">{{ task.difficulty }}</span>
+          <span class="task-pts">+{{ task.points }} pts</span>
+        </div>
+        <h3 class="task-title">{{ task.title }}</h3>
+        <p class="task-desc">{{ task.description }}</p>
+        <div class="task-footer">
+          {% if task.id in completed_ids %}
+            <button class="btn-done" disabled>✅ Completed</button>
+          {% else %}
+            <button class="btn-complete" onclick="completeTask({{ task.id }}, this)">Mark Complete ✓</button>
+          {% endif %}
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+  {% endfor %}
+</div>
+
+<!-- TOAST NOTIFICATION -->
+<div id="toast" class="toast"></div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function filterCat(cat) {
+  document.querySelectorAll('.cat-tab').forEach(t => t.classList.remove('active'));
+  event.target.classList.add('active');
+  document.querySelectorAll('.task-card').forEach(card => {
+    if (cat === 'all' || card.dataset.cat === cat) {
+      card.style.display = '';
+    } else {
+      card.style.display = 'none';
+    }
+  });
+  document.querySelectorAll('.challenge-section').forEach(s => {
+    const visible = [...s.querySelectorAll('.task-card')].some(c => c.style.display !== 'none');
+    s.style.display = visible ? '' : 'none';
+  });
+}
+
+async function completeTask(taskId, btn) {
+  btn.disabled = true;
+  btn.textContent = 'Saving...';
+  try {
+    const res = await fetch('/api/complete-task', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({task_id: taskId})
+    });
+    const data = await res.json();
+    if (data.success) {
+      const card = document.getElementById(`task-${taskId}`);
+      card.classList.add('task-done');
+      btn.outerHTML = '<button class="btn-done" disabled>✅ Completed</button>';
+      showToast(`🎉 +${data.points_earned} pts! Total: ${data.total_points} • Level ${data.level} • Confidence: ${data.confidence}%`);
+    } else {
+      btn.textContent = 'Mark Complete ✓';
+      btn.disabled = false;
+      showToast('⚠️ ' + (data.error || 'Something went wrong'));
+    }
+  } catch(e) {
+    btn.textContent = 'Mark Complete ✓';
+    btn.disabled = false;
+    showToast('⚠️ Network error');
+  }
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 4000);
+}
+</script>
+{% endblock %}

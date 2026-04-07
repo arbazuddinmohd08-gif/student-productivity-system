@@ -1,0 +1,146 @@
+{% extends "base.html" %}
+{% block title %}Progress Tracker — Confidence Builder AI{% endblock %}
+{% block content %}
+<div class="page-wrapper">
+  <div class="page-header">
+    <h1>Your <span class="gradient-text">Progress</span></h1>
+    <p>Every task completed is a step closer to your dream job. Keep going. 🚀</p>
+  </div>
+
+  <!-- SUMMARY CARDS -->
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-icon">💎</div>
+      <div class="stat-val">{{ confidence }}%</div>
+      <div class="stat-label">Confidence Score</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon">⚡</div>
+      <div class="stat-val">{{ user.points }}</div>
+      <div class="stat-label">Total Points</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon">✅</div>
+      <div class="stat-val">{{ done_tasks }}/{{ total_tasks }}</div>
+      <div class="stat-label">Tasks Completed</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon">🏆</div>
+      <div class="stat-val">Level {{ level }}</div>
+      <div class="stat-label">Current Level</div>
+    </div>
+  </div>
+
+  <!-- CHARTS -->
+  <div class="charts-grid">
+    <div class="card chart-card">
+      <div class="card-header"><h3>📅 Daily Activity (Last 14 Days)</h3></div>
+      <canvas id="activityChart" height="200"></canvas>
+    </div>
+    <div class="card chart-card">
+      <div class="card-header"><h3>🧩 Tasks by Category</h3></div>
+      <canvas id="categoryChart" height="200"></canvas>
+    </div>
+  </div>
+
+  <!-- OVERALL PROGRESS BAR -->
+  <div class="card">
+    <div class="card-header"><h3>📊 Overall Completion</h3></div>
+    <div class="overall-progress">
+      <div class="op-label">
+        <span>{{ done_tasks }} of {{ total_tasks }} challenges completed</span>
+        <span>{{ ((done_tasks / total_tasks * 100) if total_tasks else 0) | round(1) }}%</span>
+      </div>
+      <div class="progress-bar-wrap big-bar">
+        <div class="progress-bar" style="width: {{ ((done_tasks / total_tasks * 100) if total_tasks else 0) | round(1) }}%"></div>
+      </div>
+      <p class="op-sub">Complete all challenges to maximize your confidence score!</p>
+    </div>
+  </div>
+
+  <!-- MILESTONES -->
+  <div class="card">
+    <div class="card-header"><h3>🎯 Milestones</h3></div>
+    <div class="milestones-list">
+      {% set milestones = [
+        (50,  "50 pts",  "⚡", "First milestone"),
+        (150, "150 pts", "🌱", "Getting consistent"),
+        (300, "300 pts", "🔥", "On fire mode"),
+        (500, "500 pts", "💪", "Half the journey"),
+        (750, "750 pts", "💎", "Elite territory"),
+        (1000,"1000 pts","🚀", "Top 1% mindset")
+      ] %}
+      {% for pts, label, icon, desc in milestones %}
+      <div class="milestone-item {% if user.points >= pts %}milestone-done{% endif %}">
+        <div class="ms-icon">{{ icon }}</div>
+        <div class="ms-info">
+          <div class="ms-label">{{ label }} — {{ desc }}</div>
+          <div class="ms-bar-wrap">
+            <div class="ms-bar" style="width: {{ [user.points / pts * 100, 100] | min | round }}%"></div>
+          </div>
+        </div>
+        <div class="ms-status">
+          {% if user.points >= pts %}✅{% else %}{{ user.points }}/{{ pts }}{% endif %}
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+const dailyLabels = {{ daily_labels | safe }};
+const dailyCounts = {{ daily_counts | safe }};
+const catLabels   = {{ cat_labels | safe }};
+const catCounts   = {{ cat_counts | safe }};
+
+// Activity Line Chart
+new Chart(document.getElementById('activityChart'), {
+  type: 'bar',
+  data: {
+    labels: dailyLabels.length ? dailyLabels : ['No data yet'],
+    datasets: [{
+      label: 'Tasks Completed',
+      data: dailyCounts.length ? dailyCounts : [0],
+      backgroundColor: 'rgba(108,99,255,0.7)',
+      borderColor: '#6c63ff',
+      borderWidth: 2,
+      borderRadius: 6
+    }]
+  },
+  options: {
+    responsive: true,
+    plugins: { legend: { display: false } },
+    scales: {
+      x: { ticks: { color: '#aaa' }, grid: { color: '#222' } },
+      y: { ticks: { color: '#aaa', stepSize: 1 }, grid: { color: '#222' }, beginAtZero: true }
+    }
+  }
+});
+
+// Category Doughnut Chart
+new Chart(document.getElementById('categoryChart'), {
+  type: 'doughnut',
+  data: {
+    labels: catLabels.length ? catLabels : ['No tasks yet'],
+    datasets: [{
+      data: catCounts.length ? catCounts : [1],
+      backgroundColor: ['#6c63ff','#00d4ff','#ff6584','#43e97b'],
+      borderWidth: 0
+    }]
+  },
+  options: {
+    responsive: true,
+    plugins: {
+      legend: {
+        position: 'bottom',
+        labels: { color: '#ccc', padding: 16 }
+      }
+    }
+  }
+});
+</script>
+{% endblock %}
